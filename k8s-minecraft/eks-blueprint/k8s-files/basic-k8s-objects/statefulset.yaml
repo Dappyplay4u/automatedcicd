@@ -1,0 +1,66 @@
+# apiVersion: apps/v1
+# kind: StatefulSet
+# metadata:
+#   name: nginx
+#   namespace: default
+# spec:
+#   selector:
+#     matchLabels:
+#       app: nginx # has to match .spec.template.metadata.labels
+#   serviceName: "nginx"
+#   replicas: 3 # by default is 1
+#   template:
+#     metadata:
+#       labels:
+#         app: nginx # has to match .spec.selector.matchLabels
+#     spec:
+#       terminationGracePeriodSeconds: 10
+#       containers:
+#       - name: mysql
+#         image: mysql
+#         ports:
+#         - containerPort: 2710
+#           name: db
+#         # volumeMounts:
+#         # - name: www
+#         #   mountPath: /usr/share/nginx/html
+#   # volumeClaimTemplates:
+#   # - metadata:
+#   #     name: www
+#   #   spec:
+#   #     accessModes: [ "ReadWriteOnce" ]
+#   #     storageClassName: "gp2"
+#   #     resources:
+#   #       requests:
+#   #         storage: 1Gi
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-statefulset
+spec:
+  serviceName: mysql
+  replicas: 5
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:latest
+        cmd:
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: "your-root-password"
+          - name: MYSQL_DATABASE
+            value: "tower"
+          - name: MYSQL_USER
+            value: "tower"
+          - name: MYSQL_PASSWORD
+            value: "your-password"
+        ports:
+        - containerPort: 3306
