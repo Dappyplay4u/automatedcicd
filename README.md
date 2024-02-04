@@ -111,4 +111,4 @@ To install the latest minikube stable release on x86-64 Windows using Chocolatey
 - minikube start
 
 3. STart intercating with your cluster by running 
-- kubectl get po
+- kubectl get 
