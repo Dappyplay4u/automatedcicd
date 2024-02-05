@@ -1,6 +1,6 @@
 pipeline {
     agent any
-  
+
     environment {
         WORKSPACE = "${env.WORKSPACE}"
         AWS_DEFAULT_REGION = "us-east-1"
@@ -98,31 +98,20 @@ pipeline {
             }
         }
 
-        stage('Upload Artifact to Nexus') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'nexus-credentials', passwordVariable: 'PASSWORD', usernameVariable: 'USER_NAME')]) {
-                    sh "sed -i \"s/.*<username><\\/username>/<username>$USER_NAME<\\/username>/g\" ${WORKSPACE}/nexus-setup/settings.xml"
-                    sh "sed -i \"s/.*<password><\\/password>/<password>$PASSWORD<\\/password>/g\" ${WORKSPACE}/nexus-setup/settings.xml"
-                    sh 'sudo cp ${WORKSPACE}/nexus-setup/settings.xml /var/lib/jenkins/.m2'
-                    sh 'cd minecraft && mvn clean deploy -DskipTests'
-                }
-            }
-        }
-    stages {
         stage('Build and Push Docker Image') {
             steps {
                 script {
-                    
-                    Docker.WithRegistry('https://registry.hub.docker.com', credentialsId: 'docker' , toolName: 'docker') {
-                        sh "docker build -t minecraft-server:minecraft"
-                        sh "docker push dappyplay4u/minecraft:minecraft"
+                    withDockerRegistry(url: 'https://registry.hub.docker.com', credentialsId: 'docker', toolName: 'docker') {
+                        sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
+                        sh "docker push dappyplay4u/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                     }
                 }
             }
-            stage('Deploy to container') {
-                steps {
-                    sh 'docker run -d --name minecraft-server -p 8081:80 ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}'
-                }
+        }
+
+        stage('Deploy to container') {
+            steps {
+                sh 'docker run -d --name minecraft-server -p 8081:80 dappyplay4u/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}'
             }
         }
 
