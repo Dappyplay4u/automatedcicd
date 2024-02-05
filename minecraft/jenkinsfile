@@ -4,7 +4,7 @@ pipeline {
     environment {
         WORKSPACE = "${env.WORKSPACE}"
         AWS_DEFAULT_REGION = "us-east-1"
-        DOCKER_IMAGE_NAME = 'dappyplay4u/minecraft-server'
+        DOCKER_IMAGE_NAME = 'minecraft-server'
         DOCKER_IMAGE_TAG = 'minecraft'
     }
 
@@ -112,16 +112,16 @@ pipeline {
         stage('Build and Push Docker Image') {
             steps {
                 script {
-                    docker.build("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}")
-
-                    docker.withRegistry('https://registry.hub.docker.com', credentials('dappyplay4u')) {
+                    
+                    WithDockerRegistry(credentialsId: 'docker'. toolName: 'docker') {
+                        docker.build("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}")
                         docker.image("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}").push()
                     }
                 }
             }
-            post {
-                success {
-                    echo 'Docker image built and pushed successfully!'
+            stage('Deploy to container') {
+                steps {
+                    sh 'docker run -d --name minecraft-server -p 8081:80 ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}'
                 }
             }
         }
