@@ -1,5 +1,4 @@
 #  This indicates which versions of Terraform and providers our project will use
-
 terraform {
   required_version = ">= 1.3.4"
 
@@ -28,7 +27,12 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  #profile = "default"
+  default_tags {
+    tags = {
+      Name    = "k8s_Minecraft"
+      project = "eks_demo"
+    }
+  }
 }
 provider "kubernetes" {
   host                   = module.eks_cluster.cluster_endpoint

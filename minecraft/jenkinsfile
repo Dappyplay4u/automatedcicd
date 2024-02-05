@@ -22,7 +22,7 @@ pipeline {
             }
         }
 
-        stage('Create EKS Cluster') {
+        stage('Create EKS blueprint') {
             steps {
                 script {
                     dir('eks-blueprint/k8s-minecraft') {
