@@ -4,11 +4,6 @@
 #  * EC2 Security Group to allow networking traffic with EKS cluster
 #  * EKS Cluster
 #
-resource "aws_iam_user_policy_attachment" "mainuser_attachment" {
-  user       = "mainuser"
-  policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"  # Replace with an appropriate policy ARN
-}
-
 resource "aws_iam_role" "demo-cluster" {
   name = "terraform-eks-demo-cluster"
 
