@@ -1,83 +1,84 @@
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "5.2.0"
+#
+# VPC Resources
+#  * VPC
+#  * Subnets
+#  * Internet Gateway
+#  * Route Table
+#  * Security Group
+#  * Flow Log
+#
 
-  name = "eks-blueprint-vpc"
-  cidr = "10.0.0.0/16"
-
-  azs             = ["us-east-1a", "us-east-1b"]
-  private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
-  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
-
-  enable_nat_gateway = true
-  single_nat_gateway = true
-  enable_vpn_gateway = true
-
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-
-  public_subnet_tags = {
-    "kubernetes.io/role/elb"                    = 1
-    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-  }
-
-  private_subnet_tags = {
-    "kubernetes.io/role/internal-elb"           = 1
-    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-  }
+resource "aws_vpc" "demo" {
+  cidr_block = "10.0.0.0/16"
 
   tags = {
-    Terraform   = "true"
-    Environment = "dev"
+    Name = "terraform-eks-demo-node"
   }
 }
 
+resource "aws_subnet" "demo" {
+  count = 2
 
-# # Get datasource for VPC
-# data "aws_vpc" "vpc" {
-#   filter {
-#     name   = "tag:Name"
-#     values = ["Sandbox-Template"]
-#   }
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  cidr_block              = "10.0.${count.index}.0/24"
+  map_public_ip_on_launch = true
+  vpc_id                  = aws_vpc.demo.id
 
-#   # Add more filters if needed
+  tags = {
+    Name = "terraform-eks-demo-node"
+  }
+}
+
+resource "aws_internet_gateway" "demo" {
+  vpc_id = aws_vpc.demo.id
+
+  tags = {
+    Name = "terraform-eks-demo"
+  }
+}
+
+resource "aws_route_table" "demo" {
+  vpc_id = aws_vpc.demo.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.demo.id
+  }
+}
+
+resource "aws_route_table_association" "demo" {
+  count = 2
+
+  subnet_id      = aws_subnet.demo[count.index].id
+  route_table_id = aws_route_table.demo.id
+}
+
+resource "aws_security_group" "demo" {
+  vpc_id = aws_vpc.demo.id
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "terraform-eks-demo"
+  }
+}
+
+# resource "aws_flow_log" "demo" {
+#   count             = length(aws_vpc.demo.*.id)
+#   log_destination   = "arn:aws:logs:us-west-2:220894557754:log-group:/vpc-flow-logs"
+#   log_destination_type = "cloud-watch-logs"
+#   traffic_type      = "ALL"
+#   vpc_id            = aws_vpc.demo.id
 # }
-
-# data "aws_subnets" "public_subnets" {
-#   filter {
-#     name   = "tag:Name"
-#     values = ["Network-SandboxNat-A", "Network-SandboxNat-B"]
-#   }
-
-# }
-
-# data "aws_subnets" "private_subnets" {
-#   filter {
-#     name   = "tag:Name"
-#     values = ["Network-Sandbox-A", "Network-Sandbox-B"]
-#   }
-
-# }
-
-
-# # resource "aws_subnet" "tagged_public_subnets" {
-# #   for_each = toset(data.aws_subnets.public_subnets.ids)
-
-# #   vpc_id = data.aws_vpcs.vpcs.id
-
-# #   tags = {
-# #     "kubernetes.io/role/elb"           = "1"
-# #     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-# #   }
-# # }
-
-# # resource "aws_subnet" "tagged_private_subnets" {
-# #   for_each = toset(data.aws_subnets.private_subnets.ids)
-
-# #   vpc_id = data.aws_vpcs.vpcs.id
-
-# #   tags = {
-# #     "kubernetes.io/role/internal-elb"           = "1"
-# #     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-# #   }
-# # }
