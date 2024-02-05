@@ -3,20 +3,36 @@ terraform {
   required_version = ">= 1.3.4"
 
   required_providers {
-    aws        = ">= 5.0.0"
-    kubernetes = ">= 2.20.0"
-    helm       = ">= 2.9.0"
-    kubectl    = ">= 1.14"
-    random     = ">= 3"
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 5.0.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.20.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = ">= 2.9.0"
+    }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.14.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3"
+    }
   }
 }
 
 # AWS provider configuration
 provider "aws" {
-  region = "us-east-1"
+  region     = "us-east-1"
   access_key = "AKIAYISMX2RDNWTQ2KSC"
   secret_key = "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"
 }
+
 
 
 
