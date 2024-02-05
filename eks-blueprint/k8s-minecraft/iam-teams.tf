@@ -1,34 +1,3 @@
-data "aws_iam_policy_document" "assume_role" {
-  source_json = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "eks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role" "example" {
-  name = "example-role"
-
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
-}
-
-# Attach additional policies to the role as needed
-resource "aws_iam_role_policy_attachment" "example_attachment" {
-  role       = aws_iam_role.example.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-}
-
-
-
 # platform team that manages the EKS cluster provisioning. 
 
 data "aws_caller_identity" "current" {
