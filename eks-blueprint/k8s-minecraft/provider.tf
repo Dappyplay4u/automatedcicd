@@ -13,9 +13,11 @@ terraform {
   }
 }
 
+# AWS provider configuration
 provider "aws" {
-#  version = ">= 3.72"
-  region  = var.aws_region
+  region     = "us-east-1"
+  access_key = "AKIAYISMX2RDNWTQ2KSC"
+  secret_key = "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"
 }
 
 data "aws_availability_zones" "available" {}
@@ -24,5 +26,5 @@ data "aws_availability_zones" "available" {}
 # icanhazip.com to determine local workstation external IP
 # to open EC2 Security Group access to the Kubernetes cluster.
 # See workstation-external-ip.tf for additional information.
-provider "http" {}
+# provider "http" {}
 
