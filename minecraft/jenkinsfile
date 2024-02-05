@@ -113,9 +113,9 @@ pipeline {
             steps {
                 script {
                     
-                    Docker.WithRegistry(credentialsId: 'docker'. toolName: 'docker') {
-                        docker.build("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}")
-                        docker.image("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}").push()
+                    Docker.WithRegistry('https://registry.hub.docker.com', credentialsId: 'docker' , toolName: 'docker') {
+                        sh "docker build -t minecraft-server:minecraft"
+                        sh "docker push dappyplay4u/minecraft:minecraft"
                     }
                 }
             }
