@@ -1,0 +1,80 @@
+def COLOR_MAP = [
+    SUCCESS: 'good',
+    FAILURE: 'danger'
+]
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Git checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Dappyplay4u/automatedcicd.git'
+            }
+        }
+        
+        stage('Verify Terraform Version') {
+            steps {
+                echo 'Verifying the Terraform version'
+                sh 'terraform --version'
+            }
+        }
+        
+        stage('Terraform init') {
+            steps {
+                echo 'initiazing Terraform ....'
+                dir('eks-blueprint/k8s-minecraft') {
+                    sh 'terraform init'
+                }
+            }
+        }
+        
+        stage('terraform validate') {
+            steps {
+                dir('eks-blueprint/k8s-minecraft') {
+                    sh 'terraform validate'
+                }
+            }
+        }
+        
+        stage('terraform plan') {
+            steps {
+                dir('eks-blueprint/k8s-minecraft') {
+                    sh 'terraform plan'
+                }
+            }
+        }
+        
+        stage('Checkon scan') {
+            steps {
+                dir('eks-blueprint/k8s-minecraft') {
+                }
+            }
+        }
+        
+        stage('Manual Approval') {
+            steps {
+                input 'Approval required for deployment'
+            }
+        }
+        
+        stage('terraform apply') {
+            steps {
+                dir('eks-blueprint/k8s-minecraft') {
+                    sh 'terraform apply -auto-approve'
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo 'I will always say Hello again!'
+            slackSend(
+                channel: "#Minecraft-Infra",
+                color: COLOR_MAP[currentBuild.currentResult.toString()],
+                message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}"
+                )
+        }
+    }
+}

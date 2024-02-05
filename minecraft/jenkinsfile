@@ -21,40 +21,9 @@ pipeline {
                 git branch: 'master', url: 'https://github.com/Dappyplay4u/automatedcicd.git'
             }
         }
-
-        stage('Create EKS blueprint') {
-            steps {
-                script {
-                    dir('eks-blueprint/k8s-minecraft') {
-                        sh 'terraform init'
-                        sh 'terraform fmt'
-                        sh 'terraform validate'
-                        sh 'terraform plan -out=tfplan'
-                        stash includes: 'tfplan', name: 'terraform-plan'
-                    }
-                }
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: 'eks-blueprint/k8s-minecraft/tfplan', onlyIfSuccessful: true
-                }
-            }
-        }
-
         stage('Approval') {
             steps {
-                input "Please review the Terraform plan and click 'Proceed' to apply it"
-            }
-        }
-
-        stage('Apply') {
-            steps {
-                script {
-                    dir('eks-blueprint/k8s-minecraft') {
-                        unstash 'terraform-plan'
-                        sh 'terraform apply -auto-approve tfplan'
-                    }
-                }
+                input "Please review the 'Proceed' to apply it"
             }
         }
 

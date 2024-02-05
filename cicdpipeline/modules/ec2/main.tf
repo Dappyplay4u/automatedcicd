@@ -98,14 +98,17 @@ data "aws_ami" "ubuntu" {
 ###JENKINS SERVERS PUBLIC SUBNETS
 
 resource "aws_instance" "jenkins_server" {
-  ami = data.aws_ami.amazon_linux_2.id
-  instance_type = "t2.large"
-  subnet_id = var.public_subnet_az2_id
-  key_name = "postgreskey"
+  ami                    = data.aws_ami.amazon_linux_2.id
+  instance_type          = "t2.large"
+  subnet_id              = var.public_subnet_az2_id
+  key_name               = "postgreskey"
   user_data              = file("jenkins-maven-ansible-setup.sh")
+  iam_instance_profile   = "arn:aws:iam::your_account_id:instance-profile/your_existing_iam_role_name"
   vpc_security_group_ids = [var.jenkins_security_group_id]
+
   tags = {
-    Name = "jenkins server"
+    Name        = "jenkins server"
+    Application = "jenkins"
   }
 }
 

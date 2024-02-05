@@ -39,3 +39,11 @@ module "securitygroup" {
   vpc_id                        = module.vpc.vpc_id
 
 }
+
+
+#IAM
+module "iam" {
+  source                        = "../modules/iam"
+  iamrole_server_id  = module.iam.iamrole_server_id
+  iampolicy_id  = module.iam.iampolicy_id
+}

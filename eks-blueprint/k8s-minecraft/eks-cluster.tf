@@ -46,7 +46,7 @@ resource "aws_security_group" "demo-cluster" {
   }
 
   tags = {
-    Name = "springboot-eks-cluster"
+    Name = "minecraft-eks-cluster"
   }
 }
 
