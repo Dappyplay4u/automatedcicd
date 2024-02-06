@@ -1,15 +1,24 @@
-def COLOR_MAP = [
-    SUCCESS: 'good',
-    FAILURE: 'danger'
-]
-
 pipeline {
     agent any
 
+    environment {
+        WORKSPACE = "${env.WORKSPACE}"
+        AWS_DEFAULT_REGION = "us-east-1"
+        DOCKER_IMAGE_NAME = 'minecraft-server'
+        DOCKER_IMAGE_TAG = 'minecraft'
+    }
+
+    tools {
+        terraform 'terraform'
+        maven 'localMaven'
+        jdk 'localJdk'
+    }
+
     stages {
-        stage('Git checkout') {
+        stage('Git Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Dappyplay4u/automatedcicd.git'
+                echo 'Cloning the application code...'
+                git branch: 'master', url: 'https://github.com/Dappyplay4u/automatedcicd.git'
             }
         }
         
