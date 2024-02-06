@@ -17,7 +17,7 @@ terraform {
 
 provider "aws" {
   region  = "us-east-1"
-  profile = "mainuser"
+  profile = "minecraft"
 }
 
 data "aws_availability_zones" "available" {}

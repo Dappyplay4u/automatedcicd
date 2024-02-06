@@ -1,0 +1,25 @@
+# minecraft-pv-pvc.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: minecraft-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minecraft-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
