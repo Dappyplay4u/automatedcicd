@@ -80,7 +80,7 @@ pipeline {
             }
         }
 
-        stage('Install docker') {
+        stage('Install Docker') {
             steps {
                 sh '''
                     sudo yum install docker -y
@@ -119,12 +119,12 @@ pipeline {
                 }
             }
         }
-
-        
+    }
+    
     post {
         // Post-execution step for success
         success {
-            echo 'Minecraft Has been Succesfully Deployed!'
+            echo 'Minecraft has been successfully deployed!'
         }
     }
 }
