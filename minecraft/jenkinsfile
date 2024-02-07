@@ -79,7 +79,7 @@ pipeline {
             steps{
                 script{
                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
-                       sh "docker build -t minecraft ."
+                       sh " cd minecraft && docker build -t minecraft ."
                        sh "docker tag minecraft dappyplay4u/minecraft:latest "
                        sh "docker push dappyplay4u/minecraft:latest "
                     }
