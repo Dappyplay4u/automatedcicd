@@ -81,7 +81,6 @@ pipeline {
         stage('Install kubectl') {
             steps {
                 script {
-                    // Install kubectl
                     sh '''
                         # Specify the kubectl version
                         KUBECTL_VERSION="v1.24.0"
