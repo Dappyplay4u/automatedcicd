@@ -8,7 +8,7 @@ pipeline {
         awsAccountId = '568170370118'
         region = 'us-east-1'
         repositoryName = 'minecraft'
-        dockerImageTag = 'minecraft'
+        dockerImageTag = 'latest'
         ecrRegistry = "${awsAccountId}.dkr.ecr.${region}.amazonaws.com"
         SONAR_URL = "http://44.204.109.146:9000/" // URL for SonarQube
         clusterName = 'minecraft-eks-server'
