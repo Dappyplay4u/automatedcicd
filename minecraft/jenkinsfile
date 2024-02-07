@@ -12,7 +12,6 @@ pipeline {
         ecrRegistry = "${awsAccountId}.dkr.ecr.${region}.amazonaws.com"
         SONAR_URL = "http://44.204.109.146:9000/" // URL for SonarQube
         clusterName = 'minecraft-eks-server'
-        
     }
 
     tools {
@@ -80,52 +79,47 @@ pipeline {
                 }
             }
         }
+
         stage('Install docker') {
-          steps {
-              sh '''
-                  sh "sudo yum install docker -y" 
-                  sh "sudo systemctl start docker"
-                  sh "sudo systemctl  enable docker"
-                  sh "sudo usermod -a -G docker jenkins"
-              '''
-          }
-      }
+            steps {
+                sh '''
+                    sudo yum install docker -y
+                    sudo systemctl start docker
+                    sudo systemctl  enable docker
+                    sudo usermod -a -G docker jenkins
+                '''
+            }
+        }
 
         stage('Build and Push Docker Image') {
             steps {
-        script {
+                script {
+                    // Build the Docker image
+                    sh "cd minecraft && docker build -t ${repositoryName}:${dockerImageTag} ."
 
-            // // Install docker on jenkins server
-
-            // sh "sudo yum install docker -y" 
-            // sh "sudo systemctl start docker"
-            // sh "sudo systemctl  enable docker"
-            // sh "sudo usermod -a -G docker jenkins"
-            // Build the Docker image
-            sh "cd minecraft && docker build -t ${repositoryName}:${dockerImageTag} ."
-
-            // Authenticate and push the Docker image to ECR
-                sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
-                sh "docker tag ${repositoryName}:${dockerImageTag} ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                sh "docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                sh "docker rmi ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                sh " docker rmi ${repositoryName}:${dockerImageTag}"
-      }
-    }
-
-        stage('kubernetes deploy') {
-            steps {
-                withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'K8S', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
-                    dir('minecraft') 
-                    sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
-                    sh 'kubectl apply -f minecraft-deployment-service.yml'
-                    sh 'kubectl apply -f minecraft-namespace.yaml'
-                    sh 'kubectl apply -f minecraft-pv-pvc.yaml'
-                }           
+                    // Authenticate and push the Docker image to ECR
+                    sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
+                    sh "docker tag ${repositoryName}:${dockerImageTag} ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+                    sh "docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+                    sh "docker rmi ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+                    sh "docker rmi ${repositoryName}:${dockerImageTag}"
+                }
             }
         }
-    }
-    
+
+        stage('Kubernetes Deploy') {
+            steps {
+                withKubeConfig(credentialsId: 'K8S', serverUrl: '') {
+                    sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
+                    dir('minecraft') {
+                        sh 'kubectl apply -f minecraft-deployment-service.yml'
+                        sh 'kubectl apply -f minecraft-namespace.yaml'
+                        sh 'kubectl apply -f minecraft-pv-pvc.yaml'
+                    }
+                }
+            }
+        }
+
         stage('Approval for Terraform Destroy') {
             steps {
                 // Pause pipeline for manual approval before destroying Terraform resources
