@@ -82,7 +82,7 @@ pipeline {
                 script {
                     withDockerRegistry(url: 'https://registry.hub.docker.com', credentialsId: 'dockerhub_id', toolName: 'docker') {
                         // Corrected docker build command to use the correct path to the Dockerfile
-                        sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} -f /var/lib/jenkins/workspace/minecraft-deployment/Dockerfile ."
+                        sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} -f /var/lib/jenkins/workspace/minecraft/Dockerfile ."
                         sh "docker push dappyplay4u/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                     }
                 }
