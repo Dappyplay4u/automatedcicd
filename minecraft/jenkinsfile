@@ -71,7 +71,7 @@ pipeline {
             steps {
                 // Run static code analysis with SonarQube
                 withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_AUTH_TOKEN')]) {
-                    sh 'cd minecraft && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
+                    sh "cd minecraft && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}"
                 }
             }
         }
@@ -81,7 +81,8 @@ pipeline {
                 // Build and push Docker image to Docker Hub
                 script {
                     withDockerRegistry(url: 'https://registry.hub.docker.com', credentialsId: 'dockerhub_id', toolName: 'docker') {
-                        sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
+                        // Corrected docker build command to use the correct path to the Dockerfile
+                        sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} -f /var/lib/jenkins/workspace/minecraft-deployment/Dockerfile ."
                         sh "docker push dappyplay4u/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                     }
                 }
@@ -91,7 +92,7 @@ pipeline {
         stage('Deploy to Container') {
             steps {
                 // Deploy Docker image to a container
-                sh 'docker run -d --name minecraft-server -p 8081:80 dappyplay4u/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}'
+                sh "docker run -d --name minecraft-server -p 8081:80 dappyplay4u/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
             }
         }
 
