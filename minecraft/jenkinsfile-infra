@@ -80,6 +80,24 @@ pipeline {
             }
         }
     }
+
+        stage('Install kubectl') {
+            steps {
+                sh '''
+                    # Specify the kubectl version
+                    KUBECTL_VERSION="v1.24.0"
+
+                    # Download kubectl binary
+                    curl -LO "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+
+                    # Make the kubectl binary executable
+                    sudo chmod +x kubectl
+
+                    # Move kubectl binary to a directory in the PATH
+                    sudo mv kubectl /usr/local/bin/
+                '''
+            }
+        }
     
     post {
         always {
