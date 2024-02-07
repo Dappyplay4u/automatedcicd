@@ -16,7 +16,7 @@ terraform {
 #configure aws profile
 provider "aws" {
   region  = "us-east-1"
-  profile = "minecraft"
+  # profile = "minecraft"
 }
 
 data "aws_availability_zones" "available" {}
