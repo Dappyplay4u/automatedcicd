@@ -74,7 +74,7 @@ pipeline {
         stage('Static Code Analysis') {
             steps {
                 // Run static code analysis with SonarQube
-                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_AUTH_TOKEN')]) {
+                withCredentials([string(credentialsId: 'SonarQube', variable: 'SONAR_AUTH_TOKEN')]) {
                     sh "cd minecraft && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}"
                 }
             }
