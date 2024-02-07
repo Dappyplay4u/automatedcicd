@@ -86,8 +86,13 @@ pipeline {
                 }
             }
         }
-       
-        
+
+        stage('Deploy to container'){
+            steps{
+                sh 'docker run -d -p 8081:80 dappyplay4u/minecraft:latest'
+            }
+        }
+               
         stage('Kubernetes Deploy') {
             steps {
                 withKubeConfig(credentialsId: 'K8S', serverUrl: '') {

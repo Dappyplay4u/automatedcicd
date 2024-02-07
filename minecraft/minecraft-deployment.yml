@@ -13,8 +13,8 @@ spec:
         app: minecraft-server
     spec:
       containers:
-        - name: minecraft-server
-          image: itzg/minecraft-server
+        - name: minecraft
+          image: dappyplay4u/minecraft:latest'
           ports:
             - containerPort: 25565
           volumeMounts:
