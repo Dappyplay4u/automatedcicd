@@ -75,65 +75,18 @@ pipeline {
             }
         }
 
-        stage('Install Docker') {
-            steps {
-                sh '''
-                    sudo yum install docker -y
-                    sudo systemctl start docker
-                    sudo systemctl  enable docker
-                    sudo usermod -a -G docker jenkins
-                '''
+        stage("Docker Build & Push"){
+            steps{
+                script{
+                   withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
+                       sh "docker build -t minecraft ."
+                       sh "docker tag minecraft dappyplay4u/minecraft:latest "
+                       sh "docker push dappyplay4u/minecraft:latest "
+                    }
+                }
             }
         }
-
-        stage('Build and Push Docker Image') {
-      environment {
-        awsAccountId = '568170370118'
-        region = 'us-east-1'
-        repositoryName = 'minecraft'
-        dockerImageTag = "${BUILD_NUMBER}"
-        ecrRegistry = "${awsAccountId}.dkr.ecr.${region}.amazonaws.com"
        
-      }
-      steps {
-        script {
-
-            
-            sh "cd minecraft && docker build -t ${repositoryName}:${dockerImageTag} ."
-
-            // Authenticate and push the Docker image to ECR
-                sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
-                sh "docker tag ${repositoryName}:${dockerImageTag} ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                sh "docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                sh "docker rmi ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                sh " docker rmi ${repositoryName}:${dockerImageTag}"
-      }
-    }
-
-    } 
-
-        // stage('Build and Push Docker Image') {
-        //     steps {
-        //         script {
-        //             // Build the Docker image
-        //             sh "cd minecraft && docker build -t minecraft ."
-
-        //             // Authenticate and push the Docker image to ECR
-        //             sh "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 568170370118.dkr.ecr.us-east-1.amazonaws.com"
-        //             // sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
-                    
-        //             sh "docker tag minecraft:latest 568170370118.dkr.ecr.us-east-1.amazonaws.com/minecraft:latest"
-        //             // sh "docker tag ${repositoryName}:${dockerImageTag} ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-
-        //             sh "docker push 568170370118.dkr.ecr.us-east-1.amazonaws.com/minecraft:latest"
-        //             // sh "docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                    
-        //             // sh "docker rmi ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-        //             // sh "docker rmi ${repositoryName}:${dockerImageTag}"
-        //         }
-        //     }
-        // }
-
         
         stage('Kubernetes Deploy') {
             steps {
