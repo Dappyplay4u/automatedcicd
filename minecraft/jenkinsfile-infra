@@ -83,7 +83,7 @@ pipeline {
     
     post {
         always {
-            echo 'Saying Hello again!'
+            echo 'Minecraft Server Infrastructure successfully deployed!'
             slackSend(
                 channel: "#Minecraft-Infra",
                 color: COLOR_MAP[currentBuild.currentResult.toString()],
