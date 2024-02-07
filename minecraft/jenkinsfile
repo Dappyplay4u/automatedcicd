@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        WORKSPACE = "${env.WORKSPACE}"
-        AWS_DEFAULT_REGION = "us-east-1"
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         DOCKER_IMAGE_NAME = 'minecraft-server'
         DOCKER_IMAGE_TAG = 'minecraft'
     }
@@ -21,7 +21,7 @@ pipeline {
                 git branch: 'master', url: 'https://github.com/Dappyplay4u/automatedcicd.git'
             }
         }
-        stage('Approval') {
+        stage('Approval to Begin') {
             steps {
                 input "Please review the 'Proceed' to apply it"
             }
@@ -58,7 +58,7 @@ pipeline {
 
         stage('Static Code Analysis') {
             environment {
-                SONAR_URL = "http://44.202.0.48:9000/"
+                SONAR_URL = "http://3.80.173.8:9000/"
             }
             steps {
                 withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_AUTH_TOKEN')]) {
