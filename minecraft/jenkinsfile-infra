@@ -117,15 +117,9 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            echo 'Minecraft Server Infrastructure successfully decomissioned!'
-            // Notify on Slack
-            slackSend(
-                channel: "#Minecraft-Infra",
-                color: COLOR_MAP[currentBuild.currentResult.toString()],
-                message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}"
-            )
+        post {
+            always {
+                echo 'Minecraft Server Infrastructure successfully decommissioned!'
         }
     }
-}
+}   
