@@ -5,11 +5,14 @@ pipeline {
         // Credentials for AWS and Docker
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
-        DOCKER_IMAGE_NAME = 'minecraft-server'
-        DOCKER_IMAGE_TAG = 'minecraft'
+        awsAccountId = '568170370118'
+        region = 'us-east-1'
+        repositoryName = 'minecraft'
+        dockerImageTag = "${BUILD_NUMBER}"
+        ecrRegistry = "${awsAccountId}.dkr.ecr.${region}.amazonaws.com"
         SONAR_URL = "http://44.204.109.146:9000/" // URL for SonarQube
-        clusterName = minecraft-eks-server
-        region = us-east-1
+        clusterName = 'minecraft-eks-server'
+        
     }
 
     tools {
@@ -77,21 +80,38 @@ pipeline {
                 }
             }
         }
-        stage ('build image') {
-            steps {
-                script {
-                    docker.build registry
-                }
-            }
-        }
-        
-        stage('push to ECR') {
-            steps {
-                sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 220894557754.dkr.ecr.us-east-1.amazonaws.com'
-                sh 'docker push 220894557754.dkr.ecr.us-east-1.amazonaws.com/minecraft-server:latest'
-            }
-        }
+        stage('Install docker') {
+          steps {
+              sh '''
+                  sh "sudo yum install docker -y" 
+                  sh "sudo systemctl start docker"
+                  sh "sudo systemctl  enable docker"
+                  sh "sudo usermod -a -G docker jenkins"
+              '''
+          }
+      }
 
+        stage('Build and Push Docker Image') {
+            steps {
+        script {
+
+            // // Install docker on jenkins server
+
+            // sh "sudo yum install docker -y" 
+            // sh "sudo systemctl start docker"
+            // sh "sudo systemctl  enable docker"
+            // sh "sudo usermod -a -G docker jenkins"
+            // Build the Docker image
+            sh "cd minecraft && docker build -t ${repositoryName}:${dockerImageTag} ."
+
+            // Authenticate and push the Docker image to ECR
+                sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
+                sh "docker tag ${repositoryName}:${dockerImageTag} ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+                sh "docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+                sh "docker rmi ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+                sh " docker rmi ${repositoryName}:${dockerImageTag}"
+      }
+    }
 
         stage('kubernetes deploy') {
             steps {
