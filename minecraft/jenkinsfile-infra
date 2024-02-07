@@ -54,7 +54,6 @@ pipeline {
                 echo 'Planning Terraform changes....'
                 dir('eks-blueprint/k8s-minecraft') {
                     sh 'terraform plan'
-                    }
                 }
             }
         }
@@ -68,7 +67,7 @@ pipeline {
             }
         }
         
-        stage('Manual Approval if code is correct') {
+        stage('Manual Approval') {
             steps {
                 input 'Approval required for deployment'
             }
