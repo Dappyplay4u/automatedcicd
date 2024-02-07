@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: minecraft
-        image: itzg/minecraft-server
+        image: dappyplay4u/minecraft-server
         ports:
         - containerPort: 25565
         env:

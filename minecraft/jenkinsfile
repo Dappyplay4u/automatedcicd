@@ -2,13 +2,16 @@ pipeline {
     agent any
 
     environment {
+        // Credentials for AWS and Docker
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         DOCKER_IMAGE_NAME = 'minecraft-server'
         DOCKER_IMAGE_TAG = 'minecraft'
+        SONAR_URL = "http://3.80.173.8:9000/" // URL for SonarQube
     }
 
     tools {
+        // Define tools used in the pipeline
         terraform 'terraform'
         maven 'localMaven'
         jdk 'localJdk'
@@ -17,50 +20,56 @@ pipeline {
     stages {
         stage('Git Checkout') {
             steps {
+                // Clone the application code from GitHub
                 echo 'Cloning the application code...'
                 git branch: 'master', url: 'https://github.com/Dappyplay4u/automatedcicd.git'
             }
         }
+
         stage('Approval to Begin') {
             steps {
-                input "Please review the 'Proceed' to apply it"
+                // Request manual approval before proceeding
+                input "Please review the changes and approve to continue"
             }
         }
 
         stage('Build and Test') {
             steps {
+                // Build and test the Maven project
                 sh 'cd minecraft && mvn -U clean package'
             }
         }
 
         stage('Unit Test') {
             steps {
+                // Run unit tests
                 sh 'cd minecraft && mvn test'
             }
         }
 
         stage('Integration Test') {
             steps {
+                // Run integration tests
                 sh 'cd minecraft && mvn verify -DskipUnitTests'
             }
         }
 
         stage('Checkstyle Code Analysis') {
             steps {
+                // Perform code style analysis
                 sh 'cd minecraft && mvn checkstyle:checkstyle'
             }
             post {
+                // Post-processing step for success
                 success {
-                    echo 'Generated Analysis Result'
+                    echo 'Checkstyle analysis completed successfully'
                 }
             }
         }
 
         stage('Static Code Analysis') {
-            environment {
-                SONAR_URL = "http://3.80.173.8:9000/"
-            }
             steps {
+                // Run static code analysis with SonarQube
                 withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_AUTH_TOKEN')]) {
                     sh 'cd minecraft && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
                 }
@@ -69,8 +78,9 @@ pipeline {
 
         stage('Build and Push Docker Image') {
             steps {
+                // Build and push Docker image to Docker Hub
                 script {
-                    withDockerRegistry(url: 'https://registry.hub.docker.com', credentialsId: 'docker', toolName: 'docker') {
+                    withDockerRegistry(url: 'https://registry.hub.docker.com', credentialsId: 'dockerhub_id', toolName: 'docker') {
                         sh "docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ."
                         sh "docker push dappyplay4u/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                     }
@@ -78,41 +88,22 @@ pipeline {
             }
         }
 
-        stage('Deploy to container') {
+        stage('Deploy to Container') {
             steps {
+                // Deploy Docker image to a container
                 sh 'docker run -d --name minecraft-server -p 8081:80 dappyplay4u/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}'
             }
         }
 
-        // ... (Other stages)
-
-        stage('Install kubectl') {
-            steps {
-                sh '''
-                    # Specify the kubectl version
-                    KUBECTL_VERSION="v1.24.0"
-
-                    # Download kubectl binary
-                    curl -LO "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
-
-                    # Make the kubectl binary executable
-                    sudo chmod +x kubectl
-
-                    # Move kubectl binary to a directory in the PATH
-                    sudo mv kubectl /usr/local/bin/
-                '''
-            }
-        }
-
         stage('Deploy to EKS') {
-            environment {
-                region = 'us-east-1'
-                clusterName = 'minecraft-server'
-            }
             steps {
+                // Deploy Kubernetes manifests to EKS
                 script {
-                    sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft/minecraft-deployment.yaml"
-                    dir('k8s-manifests') {
+                    sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-deployment-service.yaml"
+                    sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-namespace.yaml"
+                    sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-pv-pvc.yaml"
+                    
+                    dir('minecraft') {
                         sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
                         sh "kubectl apply -f ."
                     }
@@ -122,12 +113,14 @@ pipeline {
 
         stage('Approval for Terraform Destroy') {
             steps {
-                input "Do you want to Proceed to destroy Terraform resources"
+                // Pause pipeline for manual approval before destroying Terraform resources
+                input "Do you want to proceed with destroying Terraform resources?"
             }
         }
 
         stage('Destroy') {
             steps {
+                // Unstash Terraform plan and execute Terraform destroy
                 script {
                     dir('eks-blueprint/k8s-minecraft') {
                         unstash 'terraform-plan'
@@ -139,6 +132,7 @@ pipeline {
     }
 
     post {
+        // Post-execution step for success
         success {
             echo 'Pipeline completed successfully!'
         }

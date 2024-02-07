@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: minecraft-server
-          image: dappyplay4u/minecraft-server:latest
+          image: dappyplay4u/minecraft-server
           ports:
             - containerPort: 25565
           volumeMounts:
