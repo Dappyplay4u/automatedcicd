@@ -20,7 +20,6 @@
         <!-- Minecraft server dependencies -->
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>
-            <artifactId>paper-api</artifactId>
             <version>${minecraft.version}</version>
             <scope>provided</scope>
         </dependency>
