@@ -8,6 +8,8 @@ pipeline {
         DOCKER_IMAGE_NAME = 'minecraft-server'
         DOCKER_IMAGE_TAG = 'minecraft'
         SONAR_URL = "http://3.80.173.8:9000/" // URL for SonarQube
+        clusterName = minecraft-eks-server
+        region = us-east-1
     }
 
     tools {
@@ -75,42 +77,35 @@ pipeline {
                 }
             }
         }
-
-        stage('Build and Push Docker Image') {
+        stage ('build image') {
             steps {
-                // Build and push Docker image to Docker Hub
                 script {
-                    withDockerRegistry(credentialsId: 'dockerhub_id', toolName: 'docker') {
-                        def docker_image = docker.build("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}", ".")
-                        docker_image.push()
-                    }
+                    docker.build registry
                 }
             }
         }
-
-        stage('Deploy to Container') {
+        
+        stage('push to ECR') {
             steps {
-                // Deploy Docker image to a container
-                sh "docker run -d --name ${DOCKER_IMAGE_NAME} -p 8081:80 ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+                sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 220894557754.dkr.ecr.us-east-1.amazonaws.com'
+                sh 'docker push 220894557754.dkr.ecr.us-east-1.amazonaws.com/minecraft-server:latest'
             }
         }
 
-        stage('Deploy to EKS') {
-            steps {
-                // Deploy Kubernetes manifests to EKS
-                script {
-                    sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-deployment-service.yml"
-                    sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-namespace.yaml"
-                    sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-pv-pvc.yaml"
 
-                    dir('minecraft') {
-                        sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
-                        sh "kubectl apply -f ."
-                    }
-                }
+        stage('kubernetes deploy') {
+            steps {
+                withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'K8S', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
+                    dir('minecraft') 
+                    sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
+                    sh 'kubectl apply -f minecraft-deployment-service.yml'
+                    sh 'kubectl apply -f minecraft-namespace.yaml'
+                    sh 'kubectl apply -f minecraft-pv-pvc.yaml'
+                }           
             }
         }
-
+    }
+    
         stage('Approval for Terraform Destroy') {
             steps {
                 // Pause pipeline for manual approval before destroying Terraform resources
