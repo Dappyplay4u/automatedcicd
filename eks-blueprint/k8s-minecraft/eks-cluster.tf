@@ -5,7 +5,7 @@
 #  * EKS Cluster
 #
 resource "aws_iam_role" "demo-cluster" {
-  name = "terraform-eks-demo-cluster"
+  name = "minecraft-eks-demo-cluster"
 
   assume_role_policy = <<POLICY
 {
@@ -34,7 +34,7 @@ resource "aws_iam_role_policy_attachment" "demo-cluster-AmazonEKSVPCResourceCont
 }
 
 resource "aws_security_group" "demo-cluster" {
-  name        = "springboot-eks-cluster"
+  name        = "minecraft-eks-cluster"
   description = "Cluster communication with worker nodes"
   vpc_id      = aws_vpc.demo.id
 

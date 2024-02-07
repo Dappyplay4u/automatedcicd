@@ -25,7 +25,7 @@ resource "aws_subnet" "demo" {
   vpc_id                  = aws_vpc.demo.id
 
   tags = {
-    Name = "terraform-eks-demo-node"
+    Name = "minecraft-eks-demo-node"
   }
 }
 
@@ -33,7 +33,7 @@ resource "aws_internet_gateway" "demo" {
   vpc_id = aws_vpc.demo.id
 
   tags = {
-    Name = "terraform-eks-demo"
+    Name = "minecraft-eks-demo"
   }
 }
 
@@ -71,7 +71,7 @@ resource "aws_security_group" "demo" {
   }
 
   tags = {
-    Name = "terraform-eks-demo"
+    Name = "minecraft-eks-demo"
   }
 }
 
