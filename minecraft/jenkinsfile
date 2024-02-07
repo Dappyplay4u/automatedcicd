@@ -96,46 +96,46 @@ pipeline {
         //     }
         // }
 
-        stage('Deploy to EKS') {
-            steps {
-                // Deploy Kubernetes manifests to EKS
-                script {
-                    sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-deployment-service.yml"
-                    sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-namespace.yaml"
-                    sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-pv-pvc.yaml"
+//         stage('Deploy to EKS') {
+//             steps {
+//                 // Deploy Kubernetes manifests to EKS
+//                 script {
+//                     sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-deployment-service.yml"
+//                     sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-namespace.yaml"
+//                     sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-pv-pvc.yaml"
                     
-                    dir('minecraft') {
-                        sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
-                        sh "kubectl apply -f ."
-                    }
-                }
-            }
-        }
+//                     dir('minecraft') {
+//                         sh "aws eks update-kubeconfig --name ${clusterName} --region ${region}"
+//                         sh "kubectl apply -f ."
+//                     }
+//                 }
+//             }
+//         }
 
-        stage('Approval for Terraform Destroy') {
-            steps {
-                // Pause pipeline for manual approval before destroying Terraform resources
-                input "Do you want to proceed with destroying Terraform resources?"
-            }
-        }
+//         stage('Approval for Terraform Destroy') {
+//             steps {
+//                 // Pause pipeline for manual approval before destroying Terraform resources
+//                 input "Do you want to proceed with destroying Terraform resources?"
+//             }
+//         }
 
-        stage('Destroy') {
-            steps {
-                // Unstash Terraform plan and execute Terraform destroy
-                script {
-                    dir('eks-blueprint/k8s-minecraft') {
-                        unstash 'terraform-plan'
-                        sh 'terraform destroy -auto-approve'
-                    }
-                }
-            }
-        }
-    }
+//         stage('Destroy') {
+//             steps {
+//                 // Unstash Terraform plan and execute Terraform destroy
+//                 script {
+//                     dir('eks-blueprint/k8s-minecraft') {
+//                         unstash 'terraform-plan'
+//                         sh 'terraform destroy -auto-approve'
+//                     }
+//                 }
+//             }
+//         }
+//     }
 
-    post {
-        // Post-execution step for success
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-    }
-}
+//     post {
+//         // Post-execution step for success
+//         success {
+//             echo 'Pipeline completed successfully!'
+//         }
+//     }
+// }
