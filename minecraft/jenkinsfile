@@ -5,11 +5,11 @@ pipeline {
         // Credentials for AWS and Docker
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
-        awsAccountId = '568170370118'
-        region = 'us-east-1'
-        repositoryName = 'minecraft'
-        dockerImageTag = 'latest'
-        ecrRegistry = "${awsAccountId}.dkr.ecr.${region}.amazonaws.com"
+        // awsAccountId = '568170370118'
+        // region = 'us-east-1'
+        // repositoryName = 'minecraft'
+        // dockerImageTag = 'latest'
+        // ecrRegistry = "${awsAccountId}.dkr.ecr.${region}.amazonaws.com"
         SONAR_URL = "http://44.204.109.146:9000/" // URL for SonarQube
         clusterName = 'minecraft-eks-server'
     }
@@ -95,7 +95,7 @@ pipeline {
             steps {
                 script {
                     // Build the Docker image
-                    sh "cd minecraft && docker build -t ${repositoryName}:${dockerImageTag} ."
+                    sh "cd minecraft && docker build -t minecraft ."
 
                     // Authenticate and push the Docker image to ECR
                     sh "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 568170370118.dkr.ecr.us-east-1.amazonaws.com"
