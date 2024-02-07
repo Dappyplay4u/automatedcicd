@@ -98,11 +98,17 @@ pipeline {
                     sh "cd minecraft && docker build -t ${repositoryName}:${dockerImageTag} ."
 
                     // Authenticate and push the Docker image to ECR
-                    sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
-                    sh "docker tag ${repositoryName}:${dockerImageTag} ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                    sh "docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                    sh "docker rmi ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
-                    sh "docker rmi ${repositoryName}:${dockerImageTag}"
+                    sh "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 568170370118.dkr.ecr.us-east-1.amazonaws.com"
+                    // sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
+                    
+                    sh "docker tag minecraft:latest 568170370118.dkr.ecr.us-east-1.amazonaws.com/minecraft:latest"
+                    // sh "docker tag ${repositoryName}:${dockerImageTag} ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+
+                    sh "docker push 568170370118.dkr.ecr.us-east-1.amazonaws.com/minecraft:latest"
+                    // sh "docker push ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+                    
+                    // sh "docker rmi ${ecrRegistry}/${repositoryName}:${dockerImageTag}"
+                    // sh "docker rmi ${repositoryName}:${dockerImageTag}"
                 }
             }
         }
