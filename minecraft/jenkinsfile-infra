@@ -4,8 +4,6 @@ pipeline {
     environment {
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
-        DOCKER_IMAGE_NAME = 'minecraft-server'
-        DOCKER_IMAGE_TAG = 'minecraft'
     }
 
     tools {
@@ -122,7 +120,7 @@ pipeline {
 
     post {
         always {
-            echo 'Minecraft Server Infrastructure successfully deployed!'
+            echo 'Minecraft Server Infrastructure successfully decomissioned!'
             // Notify on Slack
             slackSend(
                 channel: "#Minecraft-Infra",
