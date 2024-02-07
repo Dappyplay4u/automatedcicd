@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         WORKSPACE = "${env.WORKSPACE}"
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         AWS_DEFAULT_REGION = "us-east-1"
         DOCKER_IMAGE_NAME = 'minecraft-server'
         DOCKER_IMAGE_TAG = 'minecraft'
@@ -48,7 +50,11 @@ pipeline {
         
         stage('terraform plan') {
             steps {
-                withCredentials([string(credentialsId: 'AWSCREDENTIALS', variable: 'AWSCREDENTIALS')])
+                withAWS(credentials: [
+                    
+                            awsAccessKeyId(credentialsId: 'AWS_ACCESS_KEY', accessKeyVariable: 'AWS_ACCESS_KEY_ID'),
+                            awsSecretKey(credentialsId: 'AWS_SECRET_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')
+                    ])
                 dir('eks-blueprint/k8s-minecraft') {
                     sh 'terraform plan'
                 }
@@ -70,7 +76,6 @@ pipeline {
         
         stage('terraform apply') {
             steps {
-                withCredentials([string(credentialsId: 'AWSCREDENTIALS', variable: 'AWSCREDENTIALS')])
                 dir('eks-blueprint/k8s-minecraft') {
                     sh 'terraform apply -auto-approve'
                 }
