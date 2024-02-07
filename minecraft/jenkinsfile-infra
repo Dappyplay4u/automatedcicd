@@ -73,7 +73,7 @@ pipeline {
         
         stage('Terraform Apply') {
             steps {
-                echo 'Applying Terraform changes....'
+                echo 'Applying Terraform changes......'
                 dir('eks-blueprint/k8s-minecraft') {
                     sh 'terraform apply -auto-approve'
                 }
