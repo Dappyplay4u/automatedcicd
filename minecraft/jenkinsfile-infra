@@ -47,59 +47,59 @@ pipeline {
             }
         }
 
-        stage('Terraform Plan') {
-            steps {
-                echo 'Planning Terraform changes....'
-                dir('eks-blueprint/k8s-minecraft') {
-                    sh 'terraform plan'
-                }
-            }
-        }
+        // stage('Terraform Plan') {
+        //     steps {
+        //         echo 'Planning Terraform changes....'
+        //         dir('eks-blueprint/k8s-minecraft') {
+        //             sh 'terraform plan'
+        //         }
+        //     }
+        // }
 
-        stage('CheckOV Scan') {
-            steps {
-                echo 'Performing CheckOV scan....'
-                dir('eks-blueprint/k8s-minecraft') {
-                    // Add CheckOV scan steps here
-                }
-            }
-        }
+        // stage('CheckOV Scan') {
+        //     steps {
+        //         echo 'Performing CheckOV scan....'
+        //         dir('eks-blueprint/k8s-minecraft') {
+        //             // Add CheckOV scan steps here
+        //         }
+        //     }
+        // }
 
-        stage('Manual Approval') {
-            steps {
-                input 'Approval required for deployment'
-            }
-        }
+        // stage('Manual Approval') {
+        //     steps {
+        //         input 'Approval required for deployment'
+        //     }
+        // }
 
-        stage('Terraform Apply') {
-            steps {
-                echo 'Applying Terraform changes......'
-                dir('eks-blueprint/k8s-minecraft') {
-                    sh 'terraform apply -auto-approve'
-                }
-            }
-        }
+        // stage('Terraform Apply') {
+        //     steps {
+        //         echo 'Applying Terraform changes......'
+        //         dir('eks-blueprint/k8s-minecraft') {
+        //             sh 'terraform apply -auto-approve'
+        //         }
+        //     }
+        // }
 
-        stage('Install kubectl') {
-            steps {
-                script {
-                    // Install kubectl
-                    sh '''
-                        # Specify the kubectl version
-                        KUBECTL_VERSION="v1.24.0"
+        // stage('Install kubectl') {
+        //     steps {
+        //         script {
+        //             // Install kubectl
+        //             sh '''
+        //                 # Specify the kubectl version
+        //                 KUBECTL_VERSION="v1.24.0"
 
-                        # Download kubectl binary
-                        curl -LO "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+        //                 # Download kubectl binary
+        //                 curl -LO "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
 
-                        # Make the kubectl binary executable
-                        chmod +x kubectl
+        //                 # Make the kubectl binary executable
+        //                 chmod +x kubectl
 
-                        # Move kubectl binary to a directory in the PATH
-                        sudo mv kubectl /usr/local/bin/
-                    '''
-                }
-            }
-        }
+        //                 # Move kubectl binary to a directory in the PATH
+        //                 sudo mv kubectl /usr/local/bin/
+        //             '''
+        //         }
+        //     }
+        // }
 
         stage('Approval for Terraform Destroy') {
             steps {
