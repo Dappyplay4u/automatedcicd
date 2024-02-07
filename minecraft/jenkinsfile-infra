@@ -110,3 +110,31 @@ pipeline {
         }
     }
 }
+
+stage('Approval for Terraform Destroy') {
+            steps {
+                // Pause pipeline for manual approval before destroying Terraform resources
+                input "Do you want to proceed with destroying Terraform resources?"
+            }
+        }
+
+        stage('Destroy') {
+            steps {
+                // Unstash Terraform plan and execute Terraform destroy
+                script {
+                    dir('eks-blueprint/k8s-minecraft') {
+                        unstash 'terraform-plan'
+                        sh 'terraform destroy -auto-approve'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        // Post-execution step for success
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+    }
+}
