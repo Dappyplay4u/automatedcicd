@@ -21,14 +21,14 @@ pipeline {
                 git branch: 'master', url: 'https://github.com/Dappyplay4u/automatedcicd.git'
             }
         }
-        
+
         stage('Verify Terraform Version') {
             steps {
                 echo 'Verifying the Terraform version'
                 sh 'terraform --version'
             }
         }
-        
+
         stage('Terraform Init') {
             steps {
                 echo 'Initializing Terraform....'
@@ -37,7 +37,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Terraform Validate') {
             steps {
                 echo 'Validating Terraform configuration....'
@@ -46,7 +46,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Terraform Plan') {
             steps {
                 echo 'Planning Terraform changes....'
@@ -55,7 +55,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('CheckOV Scan') {
             steps {
                 echo 'Performing CheckOV scan....'
@@ -64,13 +64,13 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Manual Approval') {
             steps {
                 input 'Approval required for deployment'
             }
         }
-        
+
         stage('Terraform Apply') {
             steps {
                 echo 'Applying Terraform changes......'
@@ -79,50 +79,39 @@ pipeline {
                 }
             }
         }
-    }
 
         stage('Install kubectl') {
             steps {
-                sh '''
-                    # Specify the kubectl version
-                    KUBECTL_VERSION="v1.24.0"
+                script {
+                    // Install kubectl
+                    sh '''
+                        # Specify the kubectl version
+                        KUBECTL_VERSION="v1.24.0"
 
-                    # Download kubectl binary
-                    curl -LO "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+                        # Download kubectl binary
+                        curl -LO "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
 
-                    # Make the kubectl binary executable
-                    sudo chmod +x kubectl
+                        # Make the kubectl binary executable
+                        chmod +x kubectl
 
-                    # Move kubectl binary to a directory in the PATH
-                    sudo mv kubectl /usr/local/bin/
-                '''
+                        # Move kubectl binary to a directory in the PATH
+                        sudo mv kubectl /usr/local/bin/
+                    '''
+                }
             }
         }
-    
-    post {
-        always {
-            echo 'Minecraft Server Infrastructure successfully deployed!'
-            slackSend(
-                channel: "#Minecraft-Infra",
-                color: COLOR_MAP[currentBuild.currentResult.toString()],
-                message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}"
-            )
-        }
-    }
-}
 
-stage('Approval for Terraform Destroy') {
+        stage('Approval for Terraform Destroy') {
             steps {
-                // Pause pipeline for manual approval before destroying Terraform resources
                 input "Do you want to proceed with destroying Terraform resources?"
             }
         }
 
         stage('Destroy') {
             steps {
-                // Unstash Terraform plan and execute Terraform destroy
                 script {
                     dir('eks-blueprint/k8s-minecraft') {
+                        // Unstash Terraform plan and execute Terraform destroy
                         unstash 'terraform-plan'
                         sh 'terraform destroy -auto-approve'
                     }
@@ -132,7 +121,16 @@ stage('Approval for Terraform Destroy') {
     }
 
     post {
-        // Post-execution step for success
+        always {
+            echo 'Minecraft Server Infrastructure successfully deployed!'
+            // Notify on Slack
+            slackSend(
+                channel: "#Minecraft-Infra",
+                color: COLOR_MAP[currentBuild.currentResult.toString()],
+                message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}"
+            )
+        }
+
         success {
             echo 'Pipeline completed successfully!'
         }
