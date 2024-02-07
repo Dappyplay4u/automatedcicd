@@ -48,13 +48,14 @@ pipeline {
         
         stage('terraform plan') {
             steps {
+                withCredentials([string(credentialsId: 'AKIAYISMX2RDHWRK4SY5', variable: '$AWS-SECRETEACCESSKEY')])
                 dir('eks-blueprint/k8s-minecraft') {
                     sh 'terraform plan'
                 }
             }
         }
         
-        stage('Checkon scan') {
+        stage('CheckOV scan') {
             steps {
                 dir('eks-blueprint/k8s-minecraft') {
                 }
@@ -69,6 +70,7 @@ pipeline {
         
         stage('terraform apply') {
             steps {
+                withCredentials([string(credentialsId: 'AKIAYISMX2RDHWRK4SY5', variable: '$AWS-SECRETEACCESSKEY')])
                 dir('eks-blueprint/k8s-minecraft') {
                     sh 'terraform apply -auto-approve'
                 }
