@@ -89,12 +89,12 @@ pipeline {
         //     }
         // }
 
-        stage('Deploy to Container') {
-            steps {
-                // Deploy Docker image to a container
-                sh "docker run -d --name minecraft-server -p 8081:80 dappyplay4u/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
-            }
-        }
+        // stage('Deploy to Container') {
+        //     steps {
+        //         // Deploy Docker image to a container
+        //         sh "docker run -d --name minecraft-server -p 8081:80 dappyplay4u/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+        //     }
+        // }
 
         stage('Deploy to EKS') {
             steps {
