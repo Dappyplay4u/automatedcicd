@@ -3,8 +3,6 @@ pipeline {
 
     environment {
         WORKSPACE = "${env.WORKSPACE}"
-        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY')
-        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         AWS_DEFAULT_REGION = "us-east-1"
         DOCKER_IMAGE_NAME = 'minecraft-server'
         DOCKER_IMAGE_TAG = 'minecraft'
@@ -31,39 +29,45 @@ pipeline {
             }
         }
         
-        stage('Terraform init') {
+        stage('Terraform Init') {
             steps {
-                echo 'initiazing Terraform ....'
+                echo 'Initializing Terraform....'
                 dir('eks-blueprint/k8s-minecraft') {
                     sh 'terraform init'
                 }
             }
         }
         
-        stage('terraform validate') {
+        stage('Terraform Validate') {
             steps {
+                echo 'Validating Terraform configuration....'
                 dir('eks-blueprint/k8s-minecraft') {
                     sh 'terraform validate'
                 }
             }
         }
         
-        stage('terraform plan') {
+        stage('Terraform Plan') {
             steps {
-                withAWS(credentials: [
-                    
-                            awsAccessKeyId(credentialsId: 'AWS_ACCESS_KEY', accessKeyVariable: 'AWS_ACCESS_KEY_ID'),
-                            awsSecretKey(credentialsId: 'AWS_SECRET_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')
-                    ])
-                dir('eks-blueprint/k8s-minecraft') {
-                    sh 'terraform plan'
+                echo 'Planning Terraform changes....'
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentials',
+                     credentialsId: 'minecraft',
+                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']
+                ]) {
+                    dir('eks-blueprint/k8s-minecraft') {
+                        sh 'terraform plan'
+                    }
                 }
             }
         }
         
-        stage('CheckOV scan') {
+        stage('CheckOV Scan') {
             steps {
+                echo 'Performing CheckOV scan....'
                 dir('eks-blueprint/k8s-minecraft') {
+                    // Add CheckOV scan steps here
                 }
             }
         }
@@ -74,8 +78,9 @@ pipeline {
             }
         }
         
-        stage('terraform apply') {
+        stage('Terraform Apply') {
             steps {
+                echo 'Applying Terraform changes....'
                 dir('eks-blueprint/k8s-minecraft') {
                     sh 'terraform apply -auto-approve'
                 }
@@ -85,12 +90,12 @@ pipeline {
     
     post {
         always {
-            echo 'I will always say Hello again!'
+            echo 'Saying Hello again!'
             slackSend(
                 channel: "#Minecraft-Infra",
                 color: COLOR_MAP[currentBuild.currentResult.toString()],
                 message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}"
-                )
+            )
         }
     }
 }
