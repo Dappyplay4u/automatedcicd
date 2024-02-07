@@ -100,7 +100,7 @@ pipeline {
             steps {
                 // Deploy Kubernetes manifests to EKS
                 script {
-                    sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-deployment-service.yaml"
+                    sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-deployment-service.yml"
                     sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-namespace.yaml"
                     sh "sed -i 's/replaceImageTag/${BUILD_NUMBER}/g' minecraft-pv-pvc.yaml"
                     
