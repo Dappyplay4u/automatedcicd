@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         WORKSPACE = "${env.WORKSPACE}"
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         AWS_DEFAULT_REGION = "us-east-1"
         DOCKER_IMAGE_NAME = 'minecraft-server'
         DOCKER_IMAGE_TAG = 'minecraft'
@@ -50,14 +52,8 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 echo 'Planning Terraform changes....'
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentials',
-                     credentialsId: 'minecraft',
-                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']
-                ]) {
-                    dir('eks-blueprint/k8s-minecraft') {
-                        sh 'terraform plan'
+                dir('eks-blueprint/k8s-minecraft') {
+                    sh 'terraform plan'
                     }
                 }
             }
